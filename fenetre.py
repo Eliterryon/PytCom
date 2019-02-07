@@ -4,6 +4,12 @@ from tkinter import messagebox
 
 class Interface(Frame):
 
+    def affiche(self, Message):
+        temp = ""
+        for mess in Message:
+            temp += mess + "\n"
+        self.txt["text"] = temp
+
     def openFile(self):
             filepath = filedialog.askopenfilename(filetypes=[('txt files','.txt')])
     
@@ -12,10 +18,16 @@ class Interface(Frame):
     
             self.txt.insert("end", content)
 
+    def add(self, _name):
+        self.liste.insert(END, _name)
+    
+    def sub (self, _name):
+        pass
+
     def onselect(self):
         pass
 
-    def valider(self):
+    def val(self):
         pass
 
     def alert(self, txt = ""):
@@ -33,9 +45,8 @@ class Interface(Frame):
         frameL.pack(side=LEFT ,padx=10, pady=10)
 
 
-        liste = Listbox(frameL,selectbackground = "grey", height=30)
-        liste.pack()
-        liste.bind('<<ListboxSelect>>', self.onselect)
+        self.liste = Listbox(frameL,selectbackground = "grey", height=30)
+        self.liste.pack()
 
         frameH=Frame(frameR,bg="orange")
         frameLO=Frame(frameR,bg="blue")
@@ -43,6 +54,10 @@ class Interface(Frame):
         frameLO.pack(side=BOTTOM ,padx=10, pady=10)
 
         self.txt=Text(frameH,bg='#FFFFFF',)
+        
+        self.txt.insert(END, "hello" + "\n" )
+        self.txt.insert(END, "hello")
+
 
         vbar=Scrollbar(frameH,orient=VERTICAL)
         vbar.pack(side=RIGHT,fill=Y)
@@ -51,10 +66,10 @@ class Interface(Frame):
         self.txt.config( yscrollcommand=vbar.set)
         self.txt.pack(side=LEFT,expand=True,fill=BOTH,padx=10, pady=10)
 
-        saisi = Entry(frameLO, width=100)
-        saisi.pack(side=LEFT,padx=10, pady=10)
-        valider = Button(frameLO, text="envoyer", command=self.valider)
-        valider.pack(side=RIGHT,padx=10, pady=10)
+        self.saisi = Entry(frameLO, width=100)
+        self.saisi.pack(side=LEFT,padx=10, pady=10)
+        self.valider = Button(frameLO, text="envoyer", command=self.val)
+        self.valider.pack(side=RIGHT,padx=10, pady=10)
 
 
         menubar = Menu(fenetre)
@@ -77,7 +92,3 @@ class Interface(Frame):
         menubar.add_cascade(label="Aide", menu=menu3)
 
         fenetre.config(menu=menubar)
-
-fenetre = Tk()
-interface = Interface(fenetre)
-interface.mainloop()
