@@ -8,7 +8,10 @@ class Interface(Frame):
         temp = ""
         for mess in Message:
             temp += mess + "\n"
-        self.txt["text"] = temp
+        self.txt.insert(END, temp)
+
+    def clean(self):
+        self.txt.delete(FIRST,END)
 
     def openFile(self):
             filepath = filedialog.askopenfilename(filetypes=[('txt files','.txt')])
@@ -54,10 +57,6 @@ class Interface(Frame):
         frameLO.pack(side=BOTTOM ,padx=10, pady=10)
 
         self.txt=Text(frameH,bg='#FFFFFF',)
-        
-        self.txt.insert(END, "hello" + "\n" )
-        self.txt.insert(END, "hello")
-
 
         vbar=Scrollbar(frameH,orient=VERTICAL)
         vbar.pack(side=RIGHT,fill=Y)
@@ -75,7 +74,7 @@ class Interface(Frame):
         menubar = Menu(fenetre)
 
         menu1 = Menu(menubar, tearoff=0)
-        menu1.add_command(label="Créer", command=self.alert)
+        menu1.add_command(label="Clean", command=self.clean)
         menu1.add_command(label="Editer", command=self.alert)
         menu1.add_separator()
         menu1.add_command(label="Quitter", command=fenetre.quit)

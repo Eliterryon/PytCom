@@ -65,6 +65,7 @@ def addLigneConv(_name, txt):
    Discution[_name].append(txt)
 
 def onselect(evt):
+   interface.clean() 
    w = evt.widget 
    index = int(w.curselection()[0])
    value = w.get(index)
