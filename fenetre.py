@@ -10,8 +10,11 @@ class Interface(Frame):
             temp += mess + "\n"
         self.txt.insert(END, temp)
 
+    def addaffiche(self, Message):
+        self.txt.insert(END, Message + "\n")
+
     def clean(self):
-        self.txt.delete(FIRST,END)
+        self.txt.delete('1.0', END)
 
     def openFile(self):
             filepath = filedialog.askopenfilename(filetypes=[('txt files','.txt')])
@@ -57,6 +60,8 @@ class Interface(Frame):
         frameLO.pack(side=BOTTOM ,padx=10, pady=10)
 
         self.txt=Text(frameH,bg='#FFFFFF',)
+        c=["hello","plouf"]
+        self.affiche(c)
 
         vbar=Scrollbar(frameH,orient=VERTICAL)
         vbar.pack(side=RIGHT,fill=Y)

@@ -3,6 +3,7 @@ import socket
 import time
 import threading
 import fenetre as FEN
+from time import gmtime,strftime
 
 
 ### patie varialbe "global"
@@ -12,14 +13,17 @@ global entree
 global sock
 global socketFils
 
+
 global Discution
 global currentConv
 global interface
 
 
 currentConv = []
-socketFils = []
+socketFils = {}
+currentsocket = None
 Discution = {}
+currentDiscution = ""
 
 fenetre = Tk()
 
@@ -52,26 +56,52 @@ def getting (_name): ##gert conv
 
    return Discution[_name]
 
-def adding(_name): ## add conv 
-   interface.add(_name) 
+def adding(_name, _sock): ## add conv 
+   global socketFils
    global Discution
+   
+   interface.add(_name) 
    Discution[_name] = []
+   socketFils[_name]=_sock
 
 def subbing(_name):## sub conv
    global Discution
    del Discution[_name]
 
 def addLigneConv(_name, txt):
+   if currentDiscution == _name:
+      interface.addaffiche(txt)
    Discution[_name].append(txt)
 
 def onselect(evt):
+   global currentDiscution
+   global currentsocket
+   global socketFils
+
    interface.clean() 
    w = evt.widget 
    index = int(w.curselection()[0])
    value = w.get(index)
+
+   currentDiscution = value
+   currentsocket = socketFils[value]
+
    print ('You selected item %d: "%s"' % (index, value))
    interface.affiche(getting(value))
 
+def send(inp):
+   global currentsocket
+
+   snd = (strftime("%H.%M.%S", gmtime()) + ": " + inp)
+   try:
+      currentsocket.send(str.encode(snd))
+      addLigneConv(currentDiscution, snd)
+
+   except:
+      print("erreur, Connexion disparue")
+
+def envoyer():
+   send(interface.saisi.get())
 
 
 ### partie multithreading
@@ -83,7 +113,8 @@ class myThreadEcouteClient (threading.Thread):
       self.threadAdress = _threadAdress
       self.nb = _nb
       print ("{} connected".format(self.threadAdress))
-      adding(format(self.threadAdress))
+      adding(format(self.threadAdress), self.threadclient)
+      
 
    def run(self):
         closeFlag = True
@@ -119,7 +150,6 @@ class myThreadMainBoucleCO (threading.Thread):
          try:
             sock.listen(5)
             client, address = sock.accept()
-            socketFils.append(client)
             newthread = myThreadEcouteClient(client, address, n)
             newthread.start() 
          except Exception as inst :
@@ -137,6 +167,7 @@ thread1.start()
 try:
    interface = FEN.Interface(fenetre)
    interface.liste.bind('<<ListboxSelect>>', onselect)
+   interface.valider.configure(command=envoyer)
    interface.mainloop()
 except Exception as inst :
    print(inst)
