@@ -38,18 +38,26 @@ sock.bind(('', port ))
 
 def callback():
    global socketFils
-
-   exitFlag = False
+   
    if sock is not None:
       sock.close()
    #TODO close all client.
    for client in socketFils:
-      client.close()
+      if socketFils[client] != None:
+         deco(socketFils[client], client, True)
    fenetre.destroy()
 
-def verif():
-   global Discution
-   print (Discution)
+
+def deco(_sock, _name, _by_serv):
+   global socketFils
+
+   print ("closing " + format(_name))
+   
+   if _by_serv :
+      envoie("serveur shutdown", _sock)
+
+   _sock.close()
+   socketFils[_name]=None
 
 def getting (_name): ##gert conv
    global Discution
@@ -89,20 +97,23 @@ def onselect(evt):
    print ('You selected item %d: "%s"' % (index, value))
    interface.affiche(getting(value))
 
-def send(inp):
+def envoie(_inp, _sock):
    global currentsocket
 
-   snd = (strftime("%H.%M.%S", gmtime()) + ": " + inp)
+   snd = (strftime("%H.%M.%S", gmtime()) + ": " + _inp)
    try:
-      currentsocket.send(str.encode(snd))
-      addLigneConv(currentDiscution, snd)
+      _sock.send(str.encode(snd))
+      addLigneConv(_sock, snd)
 
    except:
-      print("erreur, Connexion disparue")
+      print("erreur, Connexion disparue (Erreur 1)")
 
 def envoyer():
-   send(interface.saisi.get())
-
+   try:
+      envoie(interface.saisi.get(), currentDiscution)
+      interface.saisi.delete(0, END)
+   except:
+      pass
 
 ### partie multithreading
 # # # thread qui comunique avec le client
@@ -122,18 +133,21 @@ class myThreadEcouteClient (threading.Thread):
         while closeFlag:
             try:
                response = self.threadclient.recv(255)
+
                if response.decode()[10:] != "":
-                  if (response.decode())[10:] == "/stop":
+                  if (response.decode())[10:] == "connextion closed by client":
                      closeFlag = False
-                     print ("closing " + format(self.threadAdress))
-                     self.threadclient.send(str.encode('/stop'))
-                  print (response.decode())
-                  addLigneConv(format(self.threadAdress), response.decode())
+                     deco(self.threadclient, self.threadAdress, False)
+                  else:
+                     print (response.decode())
+                     addLigneConv(format(self.threadAdress), response.decode())
+
             except Exception as inst :
                print(inst)
-               print('erreur, connextion perdu')
+               print('erreur, connextion perdu (Erreur 2)')
                closeFlag = False
-        self.threadclient.close()
+               deco(self.threadclient, self.threadAdress, False)
+
         print (format(self.threadAdress) + " closed")
         
 # # # thread qui boucle pour accepter les conection
@@ -143,9 +157,9 @@ class myThreadMainBoucleCO (threading.Thread):
 
    def run(self):
       global n
-      global exitFlag
       global socketFils
 
+      exitFlag = True
       while exitFlag:
          try:
             sock.listen(5)
@@ -154,7 +168,7 @@ class myThreadMainBoucleCO (threading.Thread):
             newthread.start() 
          except Exception as inst :
             print(inst)
-            print('erreur, connextion perdu')
+            print('erreur, connextion perdu (Erreur 3)')
             exitFlag = False
 
       print ("Close")
@@ -171,7 +185,6 @@ try:
    interface.mainloop()
 except Exception as inst :
    print(inst)
-   callback()
 
 callback()
 print("this is the End folk")
