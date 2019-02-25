@@ -41,7 +41,6 @@ def callback():
    
    if sock is not None:
       sock.close()
-   #TODO close all client.
    for client in socketFils:
       if socketFils[client] != None:
          deco(socketFils[client], client, True)
@@ -94,26 +93,29 @@ def onselect(evt):
    currentDiscution = value
    currentsocket = socketFils[value]
 
-   print ('You selected item %d: "%s"' % (index, value))
+   print (currentsocket)
    interface.affiche(getting(value))
 
 def envoie(_inp, _sock):
-   global currentsocket
-
-   snd = (strftime("%H.%M.%S", gmtime()) + ": " + _inp)
-   try:
-      _sock.send(str.encode(snd))
-      addLigneConv(_sock, snd)
-
-   except:
-      print("erreur, Connexion disparue (Erreur 1)")
+   if _sock != None or _sock != "" :
+      snd = (strftime("%H.%M.%S", gmtime()) + ": " + _inp)
+      try:
+         _sock.send(str.encode(snd))
+         addLigneConv(format(_sock), snd) ### TODO plante la
+      except Exception as err :
+         print(err)
+         print("erreur, Connexion disparue (Erreur 1)")
+   else:
+      print("erreur, aucune connexion selectioner (Erreur 4)")
 
 def envoyer():
+   global currentsocket
+
    try:
-      envoie(interface.saisi.get(), currentDiscution)
+      envoie(interface.saisi.get(), currentsocket)
       interface.saisi.delete(0, END)
-   except:
-      pass
+   except Exception as err :
+      print(err)
 
 ### partie multithreading
 # # # thread qui comunique avec le client
@@ -183,8 +185,8 @@ try:
    interface.liste.bind('<<ListboxSelect>>', onselect)
    interface.valider.configure(command=envoyer)
    interface.mainloop()
-except Exception as inst :
-   print(inst)
+except Exception as err :
+   print(err)
 
 callback()
 print("this is the End folk")
