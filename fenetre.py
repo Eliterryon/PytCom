@@ -39,25 +39,27 @@ class Interface(Frame):
     def alert(self, txt = ""):
         messagebox.showinfo("alerte", "Bravo! tu a clicker sur : ")
     
-    def __init__(self, fenetre, **kwargs):
+    def __init__(self, fenetre, **kwargs):        
+        color = "black"
+        
         Frame.__init__(self, fenetre, width=768, height=576, **kwargs)
 
-        frame=Frame(fenetre,borderwidth=2,bg="red")
+        frame=Frame(fenetre,borderwidth=2,bg=color)
         frame.grid(row=0,column=0)
 
-        frameR=Frame(frame,bg="yellow")
-        frameL=Frame(frame,bg="blue")
-        frameR.pack(side=RIGHT ,padx=10, pady=10)
-        frameL.pack(side=LEFT ,padx=10, pady=10)
+        frameR=Frame(frame,bg=color)
+        frameL=Frame(frame,bg=color)
+        frameR.pack(side=RIGHT)
+        frameL.pack(side=LEFT)
 
 
         self.liste = Listbox(frameL,selectbackground = "grey", height=30)
         self.liste.pack()
 
-        frameH=Frame(frameR,bg="orange")
-        frameLO=Frame(frameR,bg="blue")
-        frameH.pack(side=TOP ,padx=10, pady=10)
-        frameLO.pack(side=BOTTOM ,padx=10, pady=10)
+        frameH=Frame(frameR,bg=color)
+        frameLO=Frame(frameR,bg=color)
+        frameH.pack(side=TOP)
+        frameLO.pack(side=BOTTOM)
 
         self.txt=Text(frameH,bg='#FFFFFF',)
         c=["hello","plouf"]
@@ -68,7 +70,7 @@ class Interface(Frame):
         vbar.config(command=self.txt.yview)
 
         self.txt.config( yscrollcommand=vbar.set)
-        self.txt.pack(side=LEFT,expand=True,fill=BOTH,padx=10, pady=10)
+        self.txt.pack(side=LEFT,expand=True,fill=BOTH)
 
         self.saisi = Entry(frameLO, width=100)
         self.saisi.pack(side=LEFT,padx=10, pady=10)
