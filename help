@@ -1,0 +1,17 @@
+type
+\t		setting
+\c		conected pepole -> add parametre +/-/0/m for add or sustract ppl
+\s		salon
+\p		pv
+
+
+
+/c	-	->	sub a conected ppl		name to sub	 						
+	+	->	add a conected ppl		name to add						
+	i	->	init conect ppl		 	json liste of name						(inexistant for serveur side)
+	m	->	modif a name			json liste [old name, new, name]	
+
+/s	+	->	name to add
+	-	->	name to sub
+	0	->	json liste of name
+	m	->	json liste [old name, new, name]

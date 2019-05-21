@@ -1,130 +1,102 @@
-# coding: utf-8
-from tkinter import *
-import socket as sockett
+import Connextion_cli as Co
 import threading
-import sys
-from time import gmtime,strftime
-import fenetre as FEN
+import time
+import json
 
-hote = "localhost"
-port = 15555
+ListeConnected = []
+ListeSalon = []
 
-STAT_CONNEXTION = False
-socket = None
+connected = False
 
-Name = ""
-fenetre = Tk()
+def parsing(_raw_message):
+	x = _raw_message.split(" ", 1)
+	if x[0] == "\\t":
+		pass
+	elif x[0] == "\\c":
+		y = x[1].split(" ", 1)
+		if y[0] == "+":
+			addppl(y[1])
+		elif y[0] == "-":
+			subppl(y[1])
+		elif y[0] == "i":
+			initppl(y[1])
+		elif y[0] == "m":
+			modifppl(y[1])
+	elif x[0] == "\\s":
+		y = x[1].split(" ", 1)
+		if y[0] == "+":
+			addsal(y[1])
+		elif y[0] == "-":
+			subsal(y[1])
+		elif y[0] == "0":
+			initsal(y[1])
+		elif y[0] == "m":
+			modifsal(y[1])
+	elif x[0] == "\\p":
+		pass
+	else:
+		print(_raw_message)
 
-def close_client():
-    global STAT_CONNEXTION
-    global Run
+def addppl(_nom):
+	ListeConnected.append(_nom)
+	print("adding " + _nom)
+def subppl(_nom):
+	del ListeConnected[ListeConnected.index(_nom)]
+def initppl(_list_noms):
+	list_noms = _list_noms.split(" ")
+	for nom in list_noms:
+		addppl(nom)
+def modifppl(_list_noms):
+	list_noms = json.loads(_list_noms)
+	ListeConnected[ListeConnected.index(list_noms[0])] = list_noms[1]
 
-    if STAT_CONNEXTION :
-        close_connextion(False)
+def addsal(_nom):
+	ListeSalon.append(_nom)
+def subsal(_nom):
+	del ListeSalon[ListeSalon.index(_nom)]
+def initsal(_list_noms):
+	list_noms = json.loads(_list_noms)
+	for nom in list_noms:
+		addsal(nom)
+def modifsal(_list_noms):
+	list_noms = json.loads(_list_noms)
+	ListeSalon[ListeSalon.index(list_noms[0])] = list_noms[1]
 
-    Run = False
-
-def close_connextion(_by_serv):
-    global STAT_CONNEXTION
-    if (_by_serv):
-        print("connextion closed by serveur")
-    else:
-        send_message("connextion closed by client")
-        print("connextion closed by client")
-    STAT_CONNEXTION = False
-
-def connect_socket(hote=hote, port=port) :
-    global STAT_CONNEXTION
-    global socket
-
-    try:
-        socket = sockett.socket(sockett.AF_INET, sockett.SOCK_STREAM)
-        socket.setsockopt(sockett.SOL_SOCKET, sockett.SO_REUSEADDR, 1)
-        socket.connect((hote, port))
-        STAT_CONNEXTION = True
-        print ("Connection on {}".format(port))
-
-        # Create new threads
-        threadR = myThreadRevived(socket)
-        # Start new Threads
-        threadR.start()
-        return True
-
-    except Exception as inst :
-        print(inst)
-        socket.close()
-        print ("erreur, Connexion immpossible (Erreur 3)")
-        return False
-
-def loop_connection():
-    global STAT_CONNEXTION
-
-    while STAT_CONNEXTION:
-        inp = input()
-        if inp == "/close":
-            close_client()
-        if inp == "/stop":
-            close_connextion(False)
-        else:
-            send_message(inp)
-
-def button_envoyer():
-   pass
-   #send_message(interface.saisi.get())
-   
-
-def send_message(inp):
-    global STAT_CONNEXTION
-    
-    snd = (strftime("%H.%M.%S", gmtime()) + ": " + inp)
-    try:
-        socket.send(str.encode(snd))
-    except Exception as err :
-        print(err)
-        print("erreur, Connexion disparue (Erreur 2)")
-
-##Tread recive##
-class myThreadRevived (threading.Thread):
-    def __init__(self, thread):
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.thread = thread
-    def run(self):
-        global STAT_CONNEXTION
-
-        while STAT_CONNEXTION:
-            try:
-                response = self.thread.recv(255)
-            except Exception as err :
-                print(err)
-                print("erreur de connextion (Erreur 1)")
-                close_connextion(True)
-                print(STAT_CONNEXTION)
-            if (response.decode())[10:] == "/stop":
-                close_connextion(True)
-            print(response.decode())
+def sendName(_txt):
+	Co.addBuffer("\\c + " + _txt)
 
 
-Run = True
-print("client runnig")
-while Run:
-    inp = input()
-    if inp == "/close":
-        close_client()
-    elif inp == "/connect":
-        if connect_socket():
-            loop_connection()
-    else:
-        print("cmd inconnue")
 
-"""
-try:
-   interface = FEN.Interface(fenetre)
-   #interface.liste.bind('<<ListboxSelect>>', onselect)
-   interface.valider.configure(command=send_message)
-   interface.mainloop()
-except Exception as inst :
-   print(inst)
-   #TODO
 
-"""
+class myThreadRecup(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+
+	def run(self):
+		print("init recup")
+		global ListeConnected
+		while Co.Connextion:
+			time.sleep(.05)
+			temp = Co.readBuffer()
+			if temp != None :
+				print("recup")
+				parsing(temp)
+
+
+
+
+
+sendName( input())
+Co.connect_client()
+
+thread = myThreadRecup()
+thread.start()
+
+
+while Co.Connextion:
+	txt = input()
+	if txt == "e":
+		Co.close_connect()
+	else:
+		Co.addBuffer(txt)
+		
