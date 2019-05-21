@@ -14,6 +14,8 @@ ListeClient = {}									## liste of client : ListeClient[id] = [socket, is_conn
 Connextion = True									
 socks = None
 
+
+
 ################################################ thread serveur side	###############################################
 
 class myThreadRevived (threading.Thread):			## thraed who wait a upcomming message (1 for each client)
@@ -34,9 +36,12 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 				if (self.id in ListeClient) and ListeClient[self.id][1] :
 					close_connect(self.id,True)
 					print(err)
-					print('Recive connextion lose (' + format(self.id) + ')')
+					print('connextion lose (' + format(self.id) + ') (Erreur 4)')
+				elif (self.id in ListeClient) and ListeClient[self.id][1] == False :
+					print(format(self.id) + ' diconected')
+					close_connect(self.id,True)
 				else:
-					print('Recive connextion ' + format(self.id) + ' closed')
+					print('connextion ' + format(self.id) + ' closed')
 
 class myThreadSend(threading.Thread):				## thraed who reed buffer and send msg (1 for each client)
 	def __init__(self, _sock, _id):
@@ -57,7 +62,7 @@ class myThreadSend(threading.Thread):				## thraed who reed buffer and send msg 
 					if (self.id in ListeClient) and ListeClient[self.id][1] :
 						close_connect(self.id,True)
 						print(err)
-						print('Send connextion lose (' + format(self.id) + ')')
+						print('Send connextion lose (' + format(self.id) + ') (Erreur 2)')
 					else:
 						print('Send connextion ' + format(self.id) + ' closed')
 						del ListeClient[self.id]
@@ -70,7 +75,6 @@ class myThreadServ (threading.Thread): 				## thread that manage new upcomming c
 		global ListeClient
 		global Connextion
 		global socks
-
 
 		while Connextion:
 			try:				
@@ -85,7 +89,7 @@ class myThreadServ (threading.Thread): 				## thread that manage new upcomming c
 					Connextion = False
 				else:
 					Connextion = False
-					print('serveur soocket closed')
+					print('serveur socket closed')
 
 ################################################### message gestion	###################################################
 
@@ -114,13 +118,17 @@ def lunch(_sock, _id):								## lunche a new connected client
 	threadS.start()
 	print("client " + format(_id) + "is connected")
 
-def stop():											## stop the serveur 
-	Connextion = False
+def stop():									## stop the serveur 
+	global Connextion
 	global ListeClient
+	global socks
+
+	Connextion = False
 	for id in ListeClient.keys():
 		close_connect(id, False)
 	ListeClient = {}
 	socks.close()
+	time.sleep(0.01)
 	print("serveur closed")
 
 def connect_serveur(_hote=HOTE, _port=PORT) :		## open port and lunch thread for connection serveur side
@@ -136,7 +144,7 @@ def connect_serveur(_hote=HOTE, _port=PORT) :		## open port and lunch thread for
 
 	except Exception as err :
 		print(err)
-		print("error, can\'t opend serveur port")
+		print("error, can\'t opend serveur port (Erreur 1)")
 		return False
 	
 def close_connect(_id_client, booll):				## close the connection of a _id_client if booll it is bc we los the connection
@@ -145,12 +153,18 @@ def close_connect(_id_client, booll):				## close the connection of a _id_client
 	ListeClient[_id_client][0].close()
 	if booll:del ListeClient[_id_client]
 
+def deco_client(_id_client):						## take in count that the client disconnect
+	global ListeClient
+	ListeClient[_id_client][1] = False
+
 #################################################### Buffer gestion	###################################################
 
 def addBuffer(_id, _msg):							## add a msg to the bufferSend for sending it 
+	global BufferSend
 	BufferSend.append((_id, _msg))
 
 def readBuffer():									## return the 1st msg to the BufferRecive, return None if empty
+	global BufferRecive
 	if len(BufferRecive) > 0 :
 		temp = BufferRecive[0]
 		del BufferRecive[0]

@@ -1,17 +1,20 @@
 type
 \t		setting
-\c		conected pepole -> add parametre +/-/0/m for add or sustract ppl
+\c		conected pepole -> add parametre +/-/i/m for add or sustract ppl
 \s		salon
 \p		pv
+\m 		message (if serveur is a chanelle)
+\e 		serveur/client closed
 
 
-
-/c	-	->	sub a conected ppl		name to sub	 						
+\c	-	->	sub a conected ppl		name to sub	 						
 	+	->	add a conected ppl		name to add						
 	i	->	init conect ppl		 	json liste of name						(inexistant for serveur side)
-	m	->	modif a name			json liste [old name, new, name]	
+	m	->	modif a name			json liste [old name, new name]	
 
-/s	+	->	name to add
+\s	+	->	name to add
 	-	->	name to sub
-	0	->	json liste of name
-	m	->	json liste [old name, new, name]
+	i	->	init conect ppl		 	json liste of name
+	m	->	modif a name			json liste [old name, new name]*
+
+\p	

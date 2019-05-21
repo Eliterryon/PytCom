@@ -36,8 +36,10 @@ def parsing(_raw_message):
 			modif_sal(y[1])
 	elif x[0] == "\\p":
 		pass
-	else:
-		print(_raw_message)
+	elif x[0] == "\\e":
+		print("fermetur du serveur")
+	elif x[0] == "\\m":
+		print (x[1])
 
 ################################################## connected gestion   ##################################################
 
@@ -49,6 +51,7 @@ def sub_ppl(_nom):									## delete a connected
 	del ListeConnected[ListeConnected.index(_nom)]
 
 def init_ppl(_list_noms):							## init all connected when connect to a serveur
+	print("init recup")
 	list_noms = _list_noms.split(" ")
 	for nom in list_noms:
 		add_ppl(nom)
@@ -56,6 +59,12 @@ def init_ppl(_list_noms):							## init all connected when connect to a serveur
 def modif_ppl(_list_noms):							## modifie the name/property(later) of a connected
 	list_noms = json.loads(_list_noms)
 	ListeConnected[ListeConnected.index(list_noms[0])] = list_noms[1]
+
+def show_conected():								## print all conected
+	if ListeConnected == []:
+		print("aucun connecter")
+	for item in ListeConnected :
+		print(item)
 
 #################################################### salon gestion	####################################################
 
@@ -88,13 +97,11 @@ class myThreadRecup(threading.Thread):
 		threading.Thread.__init__(self)
 
 	def run(self):
-		print("init recup")
 		global ListeConnected
 		while Co.Connextion:
 			time.sleep(.05)
 			temp = Co.readBuffer()
 			if temp != None :
-				print("recup")
 				parsing(temp)
 
 
@@ -111,7 +118,11 @@ thread.start()									## start thread
 while Co.Connextion:							## main loop
 	txt = input()
 	if txt == "e":
+		Co.addBuffer("\\e")
+		time.sleep(1)
 		Co.close_connect()
+	if txt == "c":
+		show_conected()
 	else:
-		Co.addBuffer(txt)
+		Co.addBuffer("\\m " + txt)
 		

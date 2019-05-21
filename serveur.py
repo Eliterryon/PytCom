@@ -23,21 +23,26 @@ def parsing(_id, _raw_message):
 		pass
 	elif x[0] == "\\p":
 		pass
+	elif x[0] == "\\e":
+		Co.deco_client(_id)
+	elif x[0] == "\\m":
+		msg_all(_raw_message, _id)
+		print (x[1])
 
 ################################################## connected gestion   ##################################################
 
 def add_ppl(_nom, _id):								## add a connected
-
 	msg_all("\\c + " + _nom)
 	if len(ListeConnected) > 0 :
 		temp = ""
 		for values in ListeConnected.values():
-			temp += " " + values
+			temp += values + " "
 		print(temp)
-		Co.addBuffer(_id,"\\c i " + temp)
+		Co.addBuffer(_id,"\\c i " + temp[:-1])
 	ListeConnected[_id] = _nom
 
 def sub_ppl(_nom, _id):								## delete a connected 
+	Co.close_connect(_id, True)
 	del ListeConnected[_id]
 	msg_all("\\c - " + _nom)
 
@@ -49,6 +54,12 @@ def msg_all(_msg, avoid = None):					## send a message to all connected
 	for key in ListeConnected.keys() :
 		if key != avoid :
 			Co.addBuffer(key, _msg)
+
+def show_conected():								## print all conected
+	if Co.ListeClient == {}:
+		print("aucun connecter")
+	for key, item in Co.ListeClient.items() :
+		print(ListeConnected[key], item[1])
 
 ######################### thread witch keep cheking upcomming message in Connexion Reciv Buffer	#########################
 
@@ -74,7 +85,11 @@ thread.start()										## lunch thread
 while Co.Connextion:								## main loop
 	txt = input()
 	if txt == "e":
+		msg_all("\\e")
+		time.sleep(1)
 		Co.stop()
 		time.sleep(1)
+	if txt == "c":
+		show_conected()
 	else:
-		msg_all(txt)
+		msg_all("\\m " + txt)

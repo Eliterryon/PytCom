@@ -32,8 +32,8 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 			except Exception as err :
 				if Connextion :
 					Connextion = False #TODO
-					print(err)
-					print('Recive connextion lose ')
+					# print(err)
+					print('Recive connextion lose (Erreur 1)')
 				else:
 					print('Recive connextion closed')
 	
@@ -55,7 +55,7 @@ class myThreadSend(threading.Thread):				## thraed who reed buffer and send msg
 				except Exception as err :
 					Connextion = False #TODO
 					print(err)
-					print('Send connextion lose ')
+					print('Send connextion lose (Erreur 3)')
 		print('Send connextion closed')
 
 ################################################### message gestion	###################################################
@@ -97,7 +97,7 @@ def connect_client(_hote=HOTE, _port=PORT) :
 	except Exception as err :
 		close_connect()
 		print(err)
-		print("error, can\'t opend serveur port")
+		print("error, can\'t opend serveur port (Erreur 2)")
 		return False
 
 def close_connect():
