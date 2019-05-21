@@ -24,7 +24,7 @@ def parsing(_id, _raw_message):
 	elif x[0] == "\\p":
 		pass
 	elif x[0] == "\\e":
-		Co.deco_client(_id)
+		sub_ppl(ListeConnected[_id], _id)
 	elif x[0] == "\\m":
 		msg_all(_raw_message, _id)
 		print (x[1])
@@ -42,8 +42,8 @@ def add_ppl(_nom, _id):								## add a connected
 	ListeConnected[_id] = _nom
 
 def sub_ppl(_nom, _id):								## delete a connected 
-	Co.close_connect(_id, True)
-	del ListeConnected[_id]
+	Co.deco_client(_id)
+	time.sleep(0.5)
 	msg_all("\\c - " + _nom)
 
 def modif_ppl(_new_name, _id):						## modifie the name/property(later) of a connected
