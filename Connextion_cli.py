@@ -6,13 +6,16 @@ import time
 HOTE = "localhost"
 PORT = 15555
 	
-BufferSend = []
-BufferRecive = []
+BufferSend = []										## buffer for message to send : [msg]
+BufferRecive = []									## buffer for recived message : [msg]
 
 Connextion = True
 sock = None
 
-class myThreadRevived (threading.Thread):
+
+################################################ thread client side	###############################################
+
+class myThreadRevived (threading.Thread):			## thraed who wait a upcomming message
 	def __init__(self, _sock):
 		threading.Thread.__init__(self)
 		self.sock = _sock
@@ -34,7 +37,7 @@ class myThreadRevived (threading.Thread):
 				else:
 					print('Recive connextion closed')
 	
-class myThreadSend(threading.Thread):
+class myThreadSend(threading.Thread):				## thraed who reed buffer and send msg 
 	def __init__(self, _sock):
 		threading.Thread.__init__(self)
 		self.sock = _sock
@@ -55,7 +58,9 @@ class myThreadSend(threading.Thread):
 					print('Send connextion lose ')
 		print('Send connextion closed')
 
-def my_send(_message):
+################################################### message gestion	###################################################
+
+def my_send(_message):								## cut and send leaving msg
 	global sock
 	liste = re.findall(r'.{1,200}', _message)
 	temp = liste.pop()
@@ -63,7 +68,7 @@ def my_send(_message):
 		sock.send(str.encode(i+"\suit"))
 	sock.send(str.encode(temp+"\stop"))
 
-def myrecive(_message):
+def myrecive(_message):								## recive and concaten upcomming msg 
 	global sock
 	message = _message.decode()
 	if re.match(r"(.)*(\\suit)$", message) is not None :
@@ -71,20 +76,13 @@ def myrecive(_message):
 	elif re.match(r"(.)*(\\stop)$", message) is not None :
 		return message[:-5]
 
+########################################## serveux client connextion gestion	########################################
+
 def lunch(_sock):
 	threadR = myThreadRevived(_sock)
 	threadS = myThreadSend(_sock)
 	threadR.start()
 	threadS.start()
-
-def close_connect():
-	global sock
-	global Connextion
-	Connextion = False
-	sock.close()
-	time.sleep(.06)
-	print("client closed")
-
 
 def connect_client(_hote=HOTE, _port=PORT) :
 	global sock
@@ -101,6 +99,16 @@ def connect_client(_hote=HOTE, _port=PORT) :
 		print(err)
 		print("error, can\'t opend serveur port")
 		return False
+
+def close_connect():
+	global sock
+	global Connextion
+	Connextion = False
+	sock.close()
+	time.sleep(.06)
+	print("client closed")
+
+#################################################### Buffer gestion	###################################################
 
 def addBuffer(_msg):
 	BufferSend.append(_msg)

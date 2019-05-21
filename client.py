@@ -8,6 +8,8 @@ ListeSalon = []
 
 connected = False
 
+name = ""
+
 def parsing(_raw_message):
 	x = _raw_message.split(" ", 1)
 	if x[0] == "\\t":
@@ -15,58 +17,71 @@ def parsing(_raw_message):
 	elif x[0] == "\\c":
 		y = x[1].split(" ", 1)
 		if y[0] == "+":
-			addppl(y[1])
+			add_ppl(y[1])
 		elif y[0] == "-":
-			subppl(y[1])
+			sub_ppl(y[1])
 		elif y[0] == "i":
-			initppl(y[1])
+			init_ppl(y[1])
 		elif y[0] == "m":
-			modifppl(y[1])
+			modif_ppl(y[1])
 	elif x[0] == "\\s":
 		y = x[1].split(" ", 1)
 		if y[0] == "+":
-			addsal(y[1])
+			add_sal(y[1])
 		elif y[0] == "-":
-			subsal(y[1])
+			sub_sal(y[1])
 		elif y[0] == "0":
-			initsal(y[1])
+			init_sal(y[1])
 		elif y[0] == "m":
-			modifsal(y[1])
+			modif_sal(y[1])
 	elif x[0] == "\\p":
 		pass
 	else:
 		print(_raw_message)
 
-def addppl(_nom):
+################################################## connected gestion   ##################################################
+
+def add_ppl(_nom):									## add a connected
 	ListeConnected.append(_nom)
 	print("adding " + _nom)
-def subppl(_nom):
+
+def sub_ppl(_nom):									## delete a connected
 	del ListeConnected[ListeConnected.index(_nom)]
-def initppl(_list_noms):
+
+def init_ppl(_list_noms):							## init all connected when connect to a serveur
 	list_noms = _list_noms.split(" ")
 	for nom in list_noms:
-		addppl(nom)
-def modifppl(_list_noms):
+		add_ppl(nom)
+
+def modif_ppl(_list_noms):							## modifie the name/property(later) of a connected
 	list_noms = json.loads(_list_noms)
 	ListeConnected[ListeConnected.index(list_noms[0])] = list_noms[1]
 
-def addsal(_nom):
+#################################################### salon gestion	####################################################
+
+def add_sal(_nom):									## add a salon
 	ListeSalon.append(_nom)
-def subsal(_nom):
+
+def sub_sal(_nom):									## delete a salon
 	del ListeSalon[ListeSalon.index(_nom)]
-def initsal(_list_noms):
+
+def init_sal(_list_noms):							## init all salon when connect to a serveur
 	list_noms = json.loads(_list_noms)
 	for nom in list_noms:
-		addsal(nom)
-def modifsal(_list_noms):
+		add_sal(nom)
+
+def modif_sal(_list_noms):							## modifie the name/property(later) of a salone
 	list_noms = json.loads(_list_noms)
 	ListeSalon[ListeSalon.index(list_noms[0])] = list_noms[1]
 
-def sendName(_txt):
+#################################################### other gestion	####################################################	
+
+def sendName(_txt):									## send the name of the client
+	name = _txt
 	Co.addBuffer("\\c + " + _txt)
 
 
-
+######################## thread witch keep cheking upcomming message in Connexion Reciv Buffer	########################
 
 class myThreadRecup(threading.Thread):
 	def __init__(self):
@@ -83,17 +98,17 @@ class myThreadRecup(threading.Thread):
 				parsing(temp)
 
 
+######################################## init and main loop for runnig client	########################################
+
+print ("Enter your name :")
+sendName( input())								## waiting the name of the client and send it to te serveur
+Co.connect_client()								## lunch procecuse client side serveur
+
+thread = myThreadRecup()						## init thread
+thread.start()									## start thread
 
 
-
-sendName( input())
-Co.connect_client()
-
-thread = myThreadRecup()
-thread.start()
-
-
-while Co.Connextion:
+while Co.Connextion:							## main loop
 	txt = input()
 	if txt == "e":
 		Co.close_connect()

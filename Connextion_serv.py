@@ -6,15 +6,17 @@ import time
 HOTE = "localhost"
 PORT = 15555
 	
-BufferSend = []
-BufferRecive = []
+BufferSend = []										## buffer for message to send : [ID][msg]
+BufferRecive = []									## buffer for recived message : [ID][msg]
 
-ListeClient = {}
+ListeClient = {}									## liste of client : ListeClient[id] = [socket, is_connected]
 
-Connextion = True
+Connextion = True									
 socks = None
 
-class myThreadRevived (threading.Thread):
+################################################ thread serveur side	###############################################
+
+class myThreadRevived (threading.Thread):			## thraed who wait a upcomming message (1 for each client)
 	def __init__(self, _sock, _id):
 		threading.Thread.__init__(self)
 		self.sock = _sock
@@ -36,7 +38,7 @@ class myThreadRevived (threading.Thread):
 				else:
 					print('Recive connextion ' + format(self.id) + ' closed')
 
-class myThreadSend(threading.Thread):
+class myThreadSend(threading.Thread):				## thraed who reed buffer and send msg (1 for each client)
 	def __init__(self, _sock, _id):
 		threading.Thread.__init__(self)
 		self.sock = _sock
@@ -60,7 +62,7 @@ class myThreadSend(threading.Thread):
 						print('Send connextion ' + format(self.id) + ' closed')
 						del ListeClient[self.id]
 
-class myThreadServ (threading.Thread): 
+class myThreadServ (threading.Thread): 				## thread that manage new upcomming connextion
 	def __init__(self):
 		threading.Thread.__init__(self)
 
@@ -85,14 +87,16 @@ class myThreadServ (threading.Thread):
 					Connextion = False
 					print('serveur soocket closed')
 
-def my_send(_message, _sockc):
+################################################### message gestion	###################################################
+
+def my_send(_message, _sockc):						## cut and send leaving msg to designated socket
 	liste = re.findall(r".{1,200}", _message)
 	temp = liste.pop()
 	for i in liste :
 		_sockc.send(str.encode(i+"\suit"))
 	_sockc.send(str.encode(temp+"\stop"))
 
-def myrecive(_message, _sockc):
+def myrecive(_message, _sockc):						## recive and concaten upcomming msg from designated socket
 	message = _message.decode()
 	if re.match(r"(.)*(\\suit)$", message) is not None :
 		temp = message[:-5] + myrecive(_sockc.recv(255))
@@ -101,15 +105,16 @@ def myrecive(_message, _sockc):
 		temp = message[:-5]
 		return (temp)
 
+############################################# serveux connextion gestion	############################################
 
-def lunch(_sock, _id):
+def lunch(_sock, _id):								## lunche a new connected client
 	threadR = myThreadRevived(_sock, _id)
 	threadS = myThreadSend(_sock, _id)
 	threadR.start()
 	threadS.start()
 	print("client " + format(_id) + "is connected")
 
-def stop():
+def stop():											## stop the serveur 
 	Connextion = False
 	global ListeClient
 	for id in ListeClient.keys():
@@ -117,17 +122,8 @@ def stop():
 	ListeClient = {}
 	socks.close()
 	print("serveur closed")
-	
-def close_connect(_id_client, booll):
-	global ListeClient
-	ListeClient[_id_client][1] = False
-	ListeClient[_id_client][0].close()
-	if booll:del ListeClient[_id_client]
 
-	
-
-
-def connect_serveur(_hote=HOTE, _port=PORT) :
+def connect_serveur(_hote=HOTE, _port=PORT) :		## open port and lunch thread for connection serveur side
 	global socks
 
 	try:
@@ -142,11 +138,19 @@ def connect_serveur(_hote=HOTE, _port=PORT) :
 		print(err)
 		print("error, can\'t opend serveur port")
 		return False
+	
+def close_connect(_id_client, booll):				## close the connection of a _id_client if booll it is bc we los the connection
+	global ListeClient
+	ListeClient[_id_client][1] = False
+	ListeClient[_id_client][0].close()
+	if booll:del ListeClient[_id_client]
 
-def addBuffer(_id, _msg):
+#################################################### Buffer gestion	###################################################
+
+def addBuffer(_id, _msg):							## add a msg to the bufferSend for sending it 
 	BufferSend.append((_id, _msg))
 
-def readBuffer():
+def readBuffer():									## return the 1st msg to the BufferRecive, return None if empty
 	if len(BufferRecive) > 0 :
 		temp = BufferRecive[0]
 		del BufferRecive[0]
