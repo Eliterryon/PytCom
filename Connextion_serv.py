@@ -2,12 +2,14 @@ import socket
 import threading
 import re
 import time
+import Observeur 
 
 HOTE = "localhost"
 PORT = 15555
-	
-BufferSend = []										## buffer for message to send : [ID][msg]
+
 BufferRecive = []									## buffer for recived message : [ID][msg]
+
+ObserverRecive = Observeur.Observer()
 
 ListeClient = {}									## liste of client : ListeClient[id] = [socket, is_connected]
 
@@ -27,11 +29,14 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 	def run(self):
 		global ListeClient
 		global BufferRecive
+		global ObserverRecive
 
 		while (self.id in ListeClient) and ListeClient[self.id][1]:
 			try:
 				temp = myrecive(self.sock.recv(255), self.sock)
 				BufferRecive.append( (self.id, temp) )
+				ObserverRecive.notify()
+
 			except Exception as err :
 				if (self.id in ListeClient) and ListeClient[self.id][1] :
 					close_connect(self.id,True)
@@ -43,30 +48,6 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 				else:
 					print('connextion ' + format(self.id) + ' closed')
 
-class myThreadSend(threading.Thread):				## thraed who reed buffer and send msg (1 for each client)
-	def __init__(self, _sock, _id):
-		threading.Thread.__init__(self)
-		self.sock = _sock
-		self.id = _id
-	
-	def run(self):
-		global ListeClient
-		global BufferSend
-		while (self.id in ListeClient) and ListeClient[self.id][1]:
-			time.sleep(.05)
-			if (self.id in ListeClient) and len(BufferSend) >= 1 and BufferSend[0][0] == self.id:
-				try:
-					my_send(BufferSend[0][1], self.sock)
-					del BufferSend[0]
-				except Exception as err :
-					if (self.id in ListeClient) and ListeClient[self.id][1] :
-						close_connect(self.id,True)
-						print(err)
-						print('Send connextion lose (' + format(self.id) + ') (Erreur 2)')
-					else:
-						print('Send connextion ' + format(self.id) + ' closed')
-						del ListeClient[self.id]
-
 class myThreadServ (threading.Thread): 				## thread that manage new upcomming connextion
 	def __init__(self):
 		threading.Thread.__init__(self)
@@ -75,13 +56,16 @@ class myThreadServ (threading.Thread): 				## thread that manage new upcomming c
 		global ListeClient
 		global Connextion
 		global socks
+		socks.settimeout(2)
 
 		while Connextion:
 			try:				
 				socks.listen(5)
 				sockc, id = socks.accept()
 				ListeClient[format(id)] = [sockc, True]
-				lunch(sockc,format(id))
+				lunchClient(sockc,format(id))
+			except socket.timeout:
+				pass
 			except Exception as err :
 				if Connextion :
 					print(err)
@@ -111,11 +95,10 @@ def myrecive(_message, _sockc):						## recive and concaten upcomming msg from d
 
 ############################################# serveux connextion gestion	############################################
 
-def lunch(_sock, _id):								## lunche a new connected client
+def lunchClient(_sock, _id):								## lunch a new connected client
 	threadR = myThreadRevived(_sock, _id)
-	threadS = myThreadSend(_sock, _id)
+	threadR.name = 'ClientThreadRevived'
 	threadR.start()
-	threadS.start()
 	print("client " + format(_id) + "is connected")
 
 def stop():									## stop the serveur 
@@ -131,15 +114,20 @@ def stop():									## stop the serveur
 	time.sleep(0.01)
 	print("serveur closed")
 
-def connect_serveur(_hote=HOTE, _port=PORT) :		## open port and lunch thread for connection serveur side
+def connect_serveur(ObserverReciveFonction, _hote=HOTE, _port=PORT) :		## open port and lunchClient thread for connection serveur side
 	global socks
+	global ObserverRecive
 
 	try:
 		socks = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		socks.bind(('', _port ))
 		thread = myThreadServ()
+		thread.name = "ThreadServ"
 		thread.start()
 		print("connected")
+
+		ObserverRecive.attach(ObserverReciveFonction)
+
 		return True
 
 	except Exception as err :
@@ -159,9 +147,9 @@ def deco_client(_id_client):						## take in count that the client disconnect
 
 #################################################### Buffer gestion	###################################################
 
-def addBuffer(_id, _msg):							## add a msg to the bufferSend for sending it 
-	global BufferSend
-	BufferSend.append((_id, _msg))
+def addBuffer(_id, _msg):							## add a msg to the bufferSend for sending it
+	if (ListeClient[_id][1]):
+		my_send(_msg,ListeClient[_id][0])
 
 def readBuffer():									## return the 1st msg to the BufferRecive, return None if empty
 	global BufferRecive

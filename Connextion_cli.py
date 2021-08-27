@@ -2,12 +2,14 @@ import socket
 import threading
 import re
 import time
+import Observeur 
 
 HOTE = "localhost"
 PORT = 15555
 	
-BufferSend = []										## buffer for message to send : [msg]
 BufferRecive = []									## buffer for recived message : [msg]
+
+ObserverRecive = Observeur.Observer()
 
 Connextion = True
 sock = None
@@ -19,6 +21,7 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 	def __init__(self, _sock):
 		threading.Thread.__init__(self)
 		self.sock = _sock
+		self.sock.settimeout(2)
 		
 	def run(self):
 		global Connextion
@@ -28,35 +31,17 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 			try:
 				temp = myrecive(self.sock.recv(255))
 				BufferRecive.append(temp)
-
+				ObserverRecive.notify()
+			except socket.timeout:
+				pass
 			except Exception as err :
 				if Connextion :
 					Connextion = False #TODO
-					# print(err)
+					print(err)
 					print('Recive connextion lose (Erreur 1)')
 				else:
 					print('Recive connextion closed')
 	
-class myThreadSend(threading.Thread):				## thraed who reed buffer and send msg 
-	def __init__(self, _sock):
-		threading.Thread.__init__(self)
-		self.sock = _sock
-	
-	def run(self):
-		global Connextion
-		global BufferSend
-
-		while Connextion:
-			time.sleep(.05)
-			if len(BufferSend) >= 1 :
-				try:
-					my_send(BufferSend[0])
-					del BufferSend[0]
-				except Exception as err :
-					Connextion = False #TODO
-					print(err)
-					print('Send connextion lose (Erreur 3)')
-		print('Send connextion closed')
 
 ################################################### message gestion	###################################################
 
@@ -76,24 +61,17 @@ def myrecive(_message):								## recive and concaten upcomming msg
 	elif re.match(r"(.)*(\\stop)$", message) is not None :
 		return message[:-5]
 
-########################################## serveux client connextion gestion	########################################
+########################################## serveux client connextion gestion ###########################################
 
-def lunch(_sock):
-	threadR = myThreadRevived(_sock)
-	threadS = myThreadSend(_sock)
-	threadR.start()
-	threadS.start()
-
-def connect_client(_hote=HOTE, _port=PORT) :
+def connect_client(ObserverReciveFonction = None, _hote=HOTE, _port=PORT) :
 	global sock
 	try:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		sock.connect((_hote, _port))
-		lunch(sock)
+		lunch(sock, ObserverReciveFonction)
 		print("connected")
 		return True
-		
 	except Exception as err :
 		close_connect()
 		print(err)
@@ -111,7 +89,8 @@ def close_connect():
 #################################################### Buffer gestion	###################################################
 
 def addBuffer(_msg):
-	BufferSend.append(_msg)
+	my_send(_msg)
+
 
 def readBuffer():
 	if len(BufferRecive) > 0 :
@@ -120,3 +99,18 @@ def readBuffer():
 		return temp
 	else:	
 		return None
+
+
+
+#################################################### Lunch ############################################################
+
+
+def lunch(_sock, ObserverReciveFonction = None):
+
+	global ObserverRecive
+
+	threadR = myThreadRevived(_sock)
+	threadR.name = "myThreadRevived"
+	ObserverRecive.attach(ObserverReciveFonction)
+	
+	threadR.start()

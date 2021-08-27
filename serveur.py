@@ -8,6 +8,7 @@ ListeSalon = []										## liste of connectesd
 
 
 def parsing(_id, _raw_message):
+	print(_raw_message)
 	x = _raw_message.split(" ", 1)
 	if x[0] == "\\t":
 		pass
@@ -63,24 +64,15 @@ def show_conected():								## print all conected
 
 ######################### thread witch keep cheking upcomming message in Connexion Reciv Buffer	#########################
 
-class myThreadRecup(threading.Thread):
-	def __init__(self):
-		threading.Thread.__init__(self)
-
-	def run(self):
-		global ListeConnected
-		while Co.Connextion:
-			time.sleep(.05)
-			temp = Co.readBuffer()
-			if temp != None :
-				parsing(temp[0], temp[1])
+class ObservReciv():
+	def update():
+		temp = Co.readBuffer()
+		if temp != None and temp[1] != None:
+			parsing(temp[0], temp[1])
 
 ######################################## init and main loop for runnig client	########################################
 
-Co.connect_serveur()								## lunch procecuse serveur side serveur
-thread = myThreadRecup()							## init thread
-thread.start()										## lunch thread
-
+Co.connect_serveur(ObservReciv)						## lunch procecuse serveur side serveur
 
 while Co.Connextion:								## main loop
 	txt = input()
@@ -89,7 +81,8 @@ while Co.Connextion:								## main loop
 		time.sleep(1)
 		Co.stop()
 		time.sleep(1)
-	if txt == "c":
+		exit()
+	elif txt == "c":
 		show_conected()
 	else:
 		msg_all("\\m " + txt)

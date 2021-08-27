@@ -92,27 +92,18 @@ def sendName(_txt):									## send the name of the client
 
 ######################## thread witch keep cheking upcomming message in Connexion Reciv Buffer	########################
 
-class myThreadRecup(threading.Thread):
-	def __init__(self):
-		threading.Thread.__init__(self)
-
-	def run(self):
-		global ListeConnected
-		while Co.Connextion:
-			time.sleep(.05)
-			temp = Co.readBuffer()
-			if temp != None :
-				parsing(temp)
+class ObservReciv():
+	def update():
+		temp = Co.readBuffer()
+		if temp != None :
+			parsing(temp)
 
 
 ######################################## init and main loop for runnig client	########################################
 
+Co.connect_client(ObservReciv)					## lunch procecuse client side serveur
 print ("Enter your name :")
 sendName( input())								## waiting the name of the client and send it to te serveur
-Co.connect_client()								## lunch procecuse client side serveur
-
-thread = myThreadRecup()						## init thread
-thread.start()									## start thread
 
 
 while Co.Connextion:							## main loop
@@ -121,7 +112,7 @@ while Co.Connextion:							## main loop
 		Co.addBuffer("\\e")
 		time.sleep(1)
 		Co.close_connect()
-	if txt == "c":
+	elif txt == "c":
 		show_conected()
 	else:
 		Co.addBuffer("\\m " + txt)
