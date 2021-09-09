@@ -3,10 +3,9 @@ class Observer:
     def __init__(self):
         self._observers = []
  
-    def notify(self, modifier = None):
+    def notify(self, *arg):
         for observer in self._observers:
-            if modifier != observer:
-                observer.update()
+            observer.update(arg)
  
     def attach(self, observer):
         if observer not in self._observers:

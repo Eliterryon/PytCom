@@ -35,7 +35,7 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 			try:
 				temp = myrecive(self.sock.recv(255), self.sock)
 				BufferRecive.append( (self.id, temp) )
-				ObserverRecive.notify()
+				ObserverRecive.notify(readBuffer())
 
 			except Exception as err :
 				if (self.id in ListeClient) and ListeClient[self.id][1] :
@@ -56,7 +56,6 @@ class myThreadServ (threading.Thread): 				## thread that manage new upcomming c
 		global ListeClient
 		global Connextion
 		global socks
-		socks.settimeout(2)
 
 		while Connextion:
 			try:				
@@ -121,6 +120,7 @@ def connect_serveur(ObserverReciveFonction, _hote=HOTE, _port=PORT) :		## open p
 	try:
 		socks = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		socks.bind(('', _port ))
+		socks.settimeout(2)
 		thread = myThreadServ()
 		thread.name = "ThreadServ"
 		thread.start()

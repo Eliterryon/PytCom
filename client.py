@@ -2,15 +2,19 @@ import Connextion_cli as Co
 import threading
 import time
 import json
+from interface.fenetreKV import TestApp
 
 ListeConnected = []
 ListeSalon = []
+
+App = None
 
 connected = False
 
 name = ""
 
 def parsing(_raw_message):
+	print()
 	x = _raw_message.split(" ", 1)
 	if x[0] == "\\t":
 		pass
@@ -39,7 +43,10 @@ def parsing(_raw_message):
 	elif x[0] == "\\e":
 		print("fermetur du serveur")
 	elif x[0] == "\\m":
-		print (x[1])
+		y = x[1].split(" ", 1)
+		print ("[" + y[0] + "]")
+		print ("	" + y[1])
+		App.addChat(y[0], y[1])
 
 ################################################## connected gestion   ##################################################
 
@@ -93,10 +100,13 @@ def sendName(_txt):									## send the name of the client
 ######################## thread witch keep cheking upcomming message in Connexion Reciv Buffer	########################
 
 class ObservReciv():
-	def update():
-		temp = Co.readBuffer()
-		if temp != None :
-			parsing(temp)
+	def update(arg):
+		try:
+			temp = arg[0]
+			if temp != None :
+				parsing(temp)
+		except:
+			pass
 
 
 ######################################## init and main loop for runnig client	########################################
@@ -104,13 +114,15 @@ class ObservReciv():
 Co.connect_client(ObservReciv)					## lunch procecuse client side serveur
 print ("Enter your name :")
 sendName( input())								## waiting the name of the client and send it to te serveur
+App = TestApp()
+App.run()
 
 
 while Co.Connextion:							## main loop
 	txt = input()
 	if txt == "e":
 		Co.addBuffer("\\e")
-		time.sleep(1)
+		time.sleep(3)
 		Co.close_connect()
 	elif txt == "c":
 		show_conected()

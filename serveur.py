@@ -8,14 +8,13 @@ ListeSalon = []										## liste of connectesd
 
 
 def parsing(_id, _raw_message):
-	print(_raw_message)
 	x = _raw_message.split(" ", 1)
 	if x[0] == "\\t":
 		pass
 	elif x[0] == "\\c":
 		y = x[1].split(" ", 2)
 		if y[0] == "+":
-			add_ppl(y[1], _id)
+			add_ppl(y[1], _id)						## TODO name without space
 		elif y[0] == "-":
 			sub_ppl(y[1],_id)
 		elif y[0] == "m":
@@ -27,8 +26,9 @@ def parsing(_id, _raw_message):
 	elif x[0] == "\\e":
 		sub_ppl(ListeConnected[_id], _id)
 	elif x[0] == "\\m":
-		msg_all(_raw_message, _id)
-		print (x[1])
+		msg_all("\\m " + ListeConnected[_id] + " " + x[1], _id)
+		print ("[" + ListeConnected[_id] + "]")
+		print ("	" + x[1])
 
 ################################################## connected gestion   ##################################################
 
@@ -45,6 +45,7 @@ def add_ppl(_nom, _id):								## add a connected
 def sub_ppl(_nom, _id):								## delete a connected 
 	Co.deco_client(_id)
 	time.sleep(0.5)
+	print(_nom," c'est deconecter")
 	msg_all("\\c - " + _nom)
 
 def modif_ppl(_new_name, _id):						## modifie the name/property(later) of a connected
@@ -65,10 +66,13 @@ def show_conected():								## print all conected
 ######################### thread witch keep cheking upcomming message in Connexion Reciv Buffer	#########################
 
 class ObservReciv():
-	def update():
-		temp = Co.readBuffer()
-		if temp != None and temp[1] != None:
-			parsing(temp[0], temp[1])
+	def update(arg):
+		try:
+			temp = arg[0]
+			if temp != None and temp[1] != None:
+				parsing(temp[0], temp[1])
+		except:
+			pass
 
 ######################################## init and main loop for runnig client	########################################
 
@@ -85,4 +89,4 @@ while Co.Connextion:								## main loop
 	elif txt == "c":
 		show_conected()
 	else:
-		msg_all("\\m " + txt)
+		msg_all("\\m serveur " + txt)

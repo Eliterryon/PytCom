@@ -31,7 +31,7 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 			try:
 				temp = myrecive(self.sock.recv(255))
 				BufferRecive.append(temp)
-				ObserverRecive.notify()
+				ObserverRecive.notify(readBuffer())
 			except socket.timeout:
 				pass
 			except Exception as err :
