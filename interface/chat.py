@@ -22,7 +22,3 @@ def Textbox(_text, _name):
     layout.add_widget(lab1)
     layout.add_widget(lab2)
     return layout
-
-def chatUP(_profil, _msg):
-    global Chatbox
-    Chatbox.add_widget(Textbox(_msg, _profil))

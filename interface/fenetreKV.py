@@ -19,7 +19,7 @@ class TestApp(App):
     def addChat(self, _profil, _msg):
         global chat
 
-        chat.chatUP(_msg, _profil)
+        chat.add_widget(Chat.Textbox(_msg, _profil))
 
 if __name__ == "__main__":
     TestApp().run()
