@@ -118,17 +118,19 @@ dicoParse = {}
 #dicoParse[message.MODE.CLOSING][message.SUB_MODE.NULL] = Co.close_connect
 
 #dicoParse[message.MODE.PRIVAT_MESSAGE][message.SUB_MODE.NULL] = Co.close_connect
-
-dicoParse[1][1] = addition_salon
+dicoParse[message.MODE.SALON]= {}
+dicoParse[message.MODE.SALON][message.SUB_MODE.ADDITION] = addition_salon
 dicoParse[message.MODE.SALON][message.SUB_MODE.SUBSTRACTION] = substract_salon
 dicoParse[message.MODE.SALON][message.SUB_MODE.MODIFICATION] = modification_salon
 dicoParse[message.MODE.SALON][message.SUB_MODE.INITIALISATION] = initialisation_salon
 
+dicoParse[message.MODE.SETTING]= {}
 #dicoParse[message.MODE.SETTING][message.SUB_MODE.ADDITION] = Co.close_connect
 #dicoParse[message.MODE.SETTING][message.SUB_MODE.SUBSTRACTION] = Co.close_connect
 #dicoParse[message.MODE.SETTING][message.SUB_MODE.MODIFICATION] = Co.close_connect
 #dicoParse[message.MODE.SETTING][message.SUB_MODE.INITIALISATION] = Co.close_connect
 
+dicoParse[message.MODE.CONNECTION]= {}
 dicoParse[message.MODE.CONNECTION][message.SUB_MODE.ADDITION] = addition_connected
 dicoParse[message.MODE.CONNECTION][message.SUB_MODE.SUBSTRACTION] = substract_connected
 dicoParse[message.MODE.CONNECTION][message.SUB_MODE.MODIFICATION] = modification_connected
