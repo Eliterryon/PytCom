@@ -1,4 +1,4 @@
-import Connextion_serv as Co
+import connexion_serv as Co
 import threading
 import time
 import json
@@ -78,7 +78,7 @@ class ObservReciv():
 
 Co.connect_serveur(ObservReciv)						## lunch procecuse serveur side serveur
 
-while Co.Connextion:								## main loop
+while Co.Connexion:								## main loop
 	txt = input()
 	if txt == "e":
 		msg_all("\\e")

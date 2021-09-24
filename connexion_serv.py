@@ -2,18 +2,19 @@ import socket
 import threading
 import re
 import time
-import Observeur 
+import observeur 
 
 HOTE = "localhost"
 PORT = 15555
+SIZE_MESSAGE = r'.{1,200}'
 
 BufferRecive = []									## buffer for recived message : [ID][msg]
 
-ObserverRecive = Observeur.Observer()
+ObserverRecive = observeur.Observer()
 
 ListeClient = {}									## liste of client : ListeClient[id] = [socket, is_connected]
 
-Connextion = True									
+Connexion = True									
 socks = None
 
 
@@ -33,7 +34,7 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 
 		while (self.id in ListeClient) and ListeClient[self.id][1]:
 			try:
-				temp = myrecive(self.sock.recv(255), self.sock)
+				temp = custom_recive(self.sock.recv(255), self.sock)
 				BufferRecive.append( (self.id, temp) )
 				ObserverRecive.notify(readBuffer())
 
@@ -41,23 +42,23 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 				if (self.id in ListeClient) and ListeClient[self.id][1] :
 					close_connect(self.id,True)
 					print(err)
-					print('connextion lose (' + format(self.id) + ') (Erreur 4)')
+					print('connexion lose (' + format(self.id) + ') (Erreur 4)')
 				elif (self.id in ListeClient) and ListeClient[self.id][1] == False :
 					print(format(self.id) + ' diconected')
 					close_connect(self.id,True)
 				else:
-					print('connextion ' + format(self.id) + ' closed')
+					print('connexion ' + format(self.id) + ' closed')
 
-class myThreadServ (threading.Thread): 				## thread that manage new upcomming connextion
+class myThreadServ (threading.Thread): 				## thread that manage new upcomming connexion
 	def __init__(self):
 		threading.Thread.__init__(self)
 
 	def run(self):
 		global ListeClient
-		global Connextion
+		global Connexion
 		global socks
 
-		while Connextion:
+		while Connexion:
 			try:				
 				socks.listen(5)
 				sockc, id = socks.accept()
@@ -66,33 +67,33 @@ class myThreadServ (threading.Thread): 				## thread that manage new upcomming c
 			except socket.timeout:
 				pass
 			except Exception as err :
-				if Connextion :
+				if Connexion :
 					print(err)
-					print('erreur, connextion perdu (Erreur 3)')
-					Connextion = False
+					print('erreur, connexion perdu (Erreur 3)')
+					Connexion = False
 				else:
-					Connextion = False
+					Connexion = False
 					print('serveur socket closed')
 
 ################################################### message gestion	###################################################
 
-def my_send(_message, _sockc):						## cut and send leaving msg to designated socket
-	liste = re.findall(r".{1,200}", _message)
+def custom_send(_message, _sockc):						## cut and send leaving msg to designated socket
+	liste = re.findall(SIZE_MESSAGE, _message)
 	temp = liste.pop()
 	for i in liste :
 		_sockc.send(str.encode(i+"\suit"))
 	_sockc.send(str.encode(temp+"\stop"))
 
-def myrecive(_message, _sockc):						## recive and concaten upcomming msg from designated socket
+def custom_recive(_message, _sockc):						## recive and concaten upcomming msg from designated socket
 	message = _message.decode()
 	if re.match(r"(.)*(\\suit)$", message) is not None :
-		temp = message[:-5] + myrecive(_sockc.recv(255))
+		temp = message[:-5] + custom_recive(_sockc.recv(255))
 		return (temp)
 	elif re.match(r"(.)*(\\stop)$", message) is not None :
 		temp = message[:-5]
 		return (temp)
 
-############################################# serveux connextion gestion	############################################
+############################################# serveux connexion gestion	############################################
 
 def lunchClient(_sock, _id):								## lunch a new connected client
 	threadR = myThreadRevived(_sock, _id)
@@ -101,11 +102,11 @@ def lunchClient(_sock, _id):								## lunch a new connected client
 	print("client " + format(_id) + "is connected")
 
 def stop():									## stop the serveur 
-	global Connextion
+	global Connexion
 	global ListeClient
 	global socks
 
-	Connextion = False
+	Connexion = False
 	for id in ListeClient.keys():
 		close_connect(id, False)
 	ListeClient = {}
@@ -149,7 +150,7 @@ def deco_client(_id_client):						## take in count that the client disconnect
 
 def addBuffer(_id, _msg):							## add a msg to the bufferSend for sending it
 	if (ListeClient[_id][1]):
-		my_send(_msg,ListeClient[_id][0])
+		custom_send(_msg,ListeClient[_id][0])
 
 def readBuffer():									## return the 1st msg to the BufferRecive, return None if empty
 	global BufferRecive

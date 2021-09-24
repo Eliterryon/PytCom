@@ -2,16 +2,18 @@ import socket
 import threading
 import re
 import time
-import Observeur 
+import observeur 
+import message 
 
 HOTE = "localhost"
 PORT = 15555
+SIZE_MESSAGE = r'.{1,200}'
 	
 BufferRecive = []									## buffer for recived message : [msg]
 
-ObserverRecive = Observeur.Observer()
+ObserverRecive = observeur.Observer()
 
-Connextion = True
+Connexion = True
 sock = None
 
 
@@ -24,52 +26,53 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 		self.sock.settimeout(2)
 		
 	def run(self):
-		global Connextion
+		global Connexion
 		global BufferRecive
 
-		while Connextion:
+		while Connexion:
 			try:
-				temp = myrecive(self.sock.recv(255))
+				temp = custom_recive(self.sock.recv(255))
 				BufferRecive.append(temp)
 				ObserverRecive.notify(readBuffer())
 			except socket.timeout:
 				pass
 			except Exception as err :
-				if Connextion :
-					Connextion = False #TODO
+				if Connexion :
+					Connexion = False #TODO
 					print(err)
-					print('Recive connextion lose (Erreur 1)')
+					print('Recive connexion lose (Erreur 1)')
 				else:
-					print('Recive connextion closed')
+					print('Recive connexion closed')
 	
 
 ################################################### message gestion	###################################################
 
-def my_send(_message):								## cut and send leaving msg
+def custom_send(_message):								## cut and send leaving msg
 	global sock
-	liste = re.findall(r'.{1,200}', _message)
+	liste = re.findall(SIZE_MESSAGE, _message)
 	temp = liste.pop()
 	for i in liste :
 		sock.send(str.encode(i+"\suit"))
 	sock.send(str.encode(temp+"\stop"))
 
-def myrecive(_message):								## recive and concaten upcomming msg 
+def custom_recive(_message):								## recive and concaten upcomming msg 
 	global sock
 	message = _message.decode()
 	if re.match(r"(.)*(\\suit)$", message) is not None :
-		return (message[:-5] + myrecive(sock.recv(255)))
+		return (message[:-5] + custom_recive(sock.recv(255)))
 	elif re.match(r"(.)*(\\stop)$", message) is not None :
+		mm = message.Message(message[:-5])
 		return message[:-5]
 
-########################################## serveux client connextion gestion ###########################################
+########################################## serveux client connexion gestion ###########################################
 
-def connect_client(ObserverReciveFonction = None, _hote=HOTE, _port=PORT) :
+def connect_client(_observerReciveFonction = None, _hote=HOTE, _port=PORT) :
 	global sock
 	try:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		sock.connect((_hote, _port))
-		lunch(sock, ObserverReciveFonction)
+		lunch(sock, _observerReciveFonction)
 		print("connected")
 		return True
 	except Exception as err :
@@ -80,8 +83,8 @@ def connect_client(ObserverReciveFonction = None, _hote=HOTE, _port=PORT) :
 
 def close_connect():
 	global sock
-	global Connextion
-	Connextion = False
+	global Connexion
+	Connexion = False
 	sock.close()
 	time.sleep(.06)
 	print("client closed")
@@ -89,7 +92,7 @@ def close_connect():
 #################################################### Buffer gestion	###################################################
 
 def addBuffer(_msg):
-	my_send(_msg)
+	custom_send(_msg)
 
 
 def readBuffer():
@@ -105,12 +108,12 @@ def readBuffer():
 #################################################### Lunch ############################################################
 
 
-def lunch(_sock, ObserverReciveFonction = None):
+def lunch(_sock, _observerReciveFonction = None):
 
 	global ObserverRecive
 
 	threadR = myThreadRevived(_sock)
 	threadR.name = "myThreadRevived"
-	ObserverRecive.attach(ObserverReciveFonction)
+	ObserverRecive.attach(_observerReciveFonction)
 	
 	threadR.start()

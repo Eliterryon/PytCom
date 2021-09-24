@@ -1,8 +1,11 @@
-import Connextion_cli as Co
+import connexion_cli as Co
 import threading
 import time
 import json
-from interface.fenetreKV import TestApp
+import message
+
+
+#from interface.fenetreKV import TestApp
 
 ListeConnected = []
 ListeSalon = []
@@ -14,30 +17,29 @@ connected = False
 name = ""
 
 def parsing(_raw_message):
-	print()
 	x = _raw_message.split(" ", 1)
 	if x[0] == "\\t":
 		pass
 	elif x[0] == "\\c":
 		y = x[1].split(" ", 1)
 		if y[0] == "+":
-			add_ppl(y[1])
+			addition_connected(y[1])
 		elif y[0] == "-":
-			sub_ppl(y[1])
+			substract_connected(y[1])
 		elif y[0] == "i":
-			init_ppl(y[1])
+			initialisation_connected(y[1])
 		elif y[0] == "m":
-			modif_ppl(y[1])
+			modification_connected(y[1])
 	elif x[0] == "\\s":
 		y = x[1].split(" ", 1)
 		if y[0] == "+":
-			add_sal(y[1])
+			addition_salon(y[1])
 		elif y[0] == "-":
-			sub_sal(y[1])
+			substract_salon(y[1])
 		elif y[0] == "0":
-			init_sal(y[1])
+			initialisation_salon(y[1])
 		elif y[0] == "m":
-			modif_sal(y[1])
+			modification_salon(y[1])
 	elif x[0] == "\\p":
 		pass
 	elif x[0] == "\\e":
@@ -50,20 +52,20 @@ def parsing(_raw_message):
 
 ################################################## connected gestion   ##################################################
 
-def add_ppl(_nom):									## add a connected
+def addition_connected(_nom):									## add a connected
 	ListeConnected.append(_nom)
 	print("adding " + _nom)
 
-def sub_ppl(_nom):									## delete a connected
+def substract_connected(_nom):									## delete a connected
 	del ListeConnected[ListeConnected.index(_nom)]
 
-def init_ppl(_list_noms):							## init all connected when connect to a serveur
+def initialisation_connected(_list_noms):							## init all connected when connect to a serveur
 	print("init recup")
 	list_noms = _list_noms.split(" ")
 	for nom in list_noms:
-		add_ppl(nom)
+		addition_connected(nom)
 
-def modif_ppl(_list_noms):							## modifie the name/property(later) of a connected
+def modification_connected(_list_noms):							## modifie the name/property(later) of a connected
 	list_noms = json.loads(_list_noms)
 	ListeConnected[ListeConnected.index(list_noms[0])] = list_noms[1]
 
@@ -75,18 +77,18 @@ def show_conected():								## print all conected
 
 #################################################### salon gestion	####################################################
 
-def add_sal(_nom):									## add a salon
+def addition_salon(_nom):									## add a salon
 	ListeSalon.append(_nom)
 
-def sub_sal(_nom):									## delete a salon
+def substract_salon(_nom):									## delete a salon
 	del ListeSalon[ListeSalon.index(_nom)]
 
-def init_sal(_list_noms):							## init all salon when connect to a serveur
+def initialisation_salon(_list_noms):							## init all salon when connect to a serveur
 	list_noms = json.loads(_list_noms)
 	for nom in list_noms:
-		add_sal(nom)
+		addition_salon(nom)
 
-def modif_sal(_list_noms):							## modifie the name/property(later) of a salone
+def modification_salon(_list_noms):							## modifie the name/property(later) of a salone
 	list_noms = json.loads(_list_noms)
 	ListeSalon[ListeSalon.index(list_noms[0])] = list_noms[1]
 
@@ -110,15 +112,36 @@ class ObservReciv():
 
 
 ######################################## init and main loop for runnig client	########################################
+dicoParse = {}
+#dicoParse[message.MODE.MESSAGE][message.SUB_MODE.NULL] = pass
+
+#dicoParse[message.MODE.CLOSING][message.SUB_MODE.NULL] = Co.close_connect
+
+#dicoParse[message.MODE.PRIVAT_MESSAGE][message.SUB_MODE.NULL] = Co.close_connect
+
+dicoParse[1][1] = addition_salon
+dicoParse[message.MODE.SALON][message.SUB_MODE.SUBSTRACTION] = substract_salon
+dicoParse[message.MODE.SALON][message.SUB_MODE.MODIFICATION] = modification_salon
+dicoParse[message.MODE.SALON][message.SUB_MODE.INITIALISATION] = initialisation_salon
+
+#dicoParse[message.MODE.SETTING][message.SUB_MODE.ADDITION] = Co.close_connect
+#dicoParse[message.MODE.SETTING][message.SUB_MODE.SUBSTRACTION] = Co.close_connect
+#dicoParse[message.MODE.SETTING][message.SUB_MODE.MODIFICATION] = Co.close_connect
+#dicoParse[message.MODE.SETTING][message.SUB_MODE.INITIALISATION] = Co.close_connect
+
+dicoParse[message.MODE.CONNECTION][message.SUB_MODE.ADDITION] = addition_connected
+dicoParse[message.MODE.CONNECTION][message.SUB_MODE.SUBSTRACTION] = substract_connected
+dicoParse[message.MODE.CONNECTION][message.SUB_MODE.MODIFICATION] = modification_connected
+dicoParse[message.MODE.CONNECTION][message.SUB_MODE.INITIALISATION] = initialisation_connected
 
 Co.connect_client(ObservReciv)					## lunch procecuse client side serveur
 print ("Enter your name :")
 sendName( input())								## waiting the name of the client and send it to te serveur
-App = TestApp()
-App.run()
+#App = TestApp()
+#App.run()
 
 
-while Co.Connextion:							## main loop
+while Co.Connexion:							## main loop
 	txt = input()
 	if txt == "e":
 		Co.addBuffer("\\e")
