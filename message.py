@@ -17,6 +17,10 @@ class SUB_MODE(Enum):
 
 
 class Message:
+
+	message = ""
+	mode = ""
+	submod = ""
 	
 	def __init__(self, _mode, _author, _message, _submod = ""):
 		self.message = _message
@@ -34,7 +38,7 @@ class Message:
 			self.submod, reste = reste.split(" ", 1)
 
 		self.submod = SUB_MODE(self.submod)
-		self.mode = MODE(self.mode[1:])
+		self.mode = MODE(self.mode)
 
 		self.author, self.message = reste.split(" ", 1)
 

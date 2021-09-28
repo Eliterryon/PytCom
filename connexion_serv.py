@@ -35,9 +35,8 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 		while (self.id in ListeClient) and ListeClient[self.id][1]:
 			try:
 				temp = custom_recive(self.sock.recv(255), self.sock)
-				BufferRecive.append( (self.id, temp) )
-				ObserverRecive.notify(readBuffer())
-
+			except socket.timeout:
+				pass
 			except Exception as err :
 				if (self.id in ListeClient) and ListeClient[self.id][1] :
 					close_connect(self.id,True)
@@ -48,6 +47,9 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 					close_connect(self.id,True)
 				else:
 					print('connexion ' + format(self.id) + ' closed')
+			else:
+				BufferRecive.append( (self.id, temp) )
+				ObserverRecive.notify(readBuffer())
 
 class myThreadServ (threading.Thread): 				## thread that manage new upcomming connexion
 	def __init__(self):
@@ -62,8 +64,6 @@ class myThreadServ (threading.Thread): 				## thread that manage new upcomming c
 			try:				
 				socks.listen(5)
 				sockc, id = socks.accept()
-				ListeClient[format(id)] = [sockc, True]
-				lunchClient(sockc,format(id))
 			except socket.timeout:
 				pass
 			except Exception as err :
@@ -74,6 +74,11 @@ class myThreadServ (threading.Thread): 				## thread that manage new upcomming c
 				else:
 					Connexion = False
 					print('serveur socket closed')
+			else:
+				sockc.settimeout(2)
+				ListeClient[format(id)] = [sockc, True]
+				lunchClient(sockc,format(id))
+
 
 ################################################### message gestion	###################################################
 

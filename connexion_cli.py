@@ -3,7 +3,6 @@ import threading
 import re
 import time
 import observeur 
-import message 
 
 HOTE = "localhost"
 PORT = 15555
@@ -31,9 +30,7 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 
 		while Connexion:
 			try:
-				temp = custom_recive(self.sock.recv(255))
-				BufferRecive.append(temp)
-				ObserverRecive.notify(readBuffer())
+				temp = self.sock.recv(255)
 			except socket.timeout:
 				pass
 			except Exception as err :
@@ -43,6 +40,10 @@ class myThreadRevived (threading.Thread):			## thraed who wait a upcomming messa
 					print('Recive connexion lose (Erreur 1)')
 				else:
 					print('Recive connexion closed')
+			else:
+				temp = custom_recive(temp)
+				BufferRecive.append(temp)
+				ObserverRecive.notify(readBuffer())
 	
 
 ################################################### message gestion	###################################################
@@ -57,12 +58,11 @@ def custom_send(_message):								## cut and send leaving msg
 
 def custom_recive(_message):								## recive and concaten upcomming msg 
 	global sock
-	message = _message.decode()
-	if re.match(r"(.)*(\\suit)$", message) is not None :
-		return (message[:-5] + custom_recive(sock.recv(255)))
-	elif re.match(r"(.)*(\\stop)$", message) is not None :
-		mm = message.Message(message[:-5])
-		return message[:-5]
+	tempMessage = _message.decode()
+	if re.match(r"(.)*(\\suit)$", tempMessage) is not None :
+		return (tempMessage[:-5] + custom_recive(sock.recv(255)))
+	elif re.match(r"(.)*(\\stop)$", tempMessage) is not None :
+		return tempMessage[:-5]
 
 ########################################## serveux client connexion gestion ###########################################
 
