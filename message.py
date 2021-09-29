@@ -21,11 +21,13 @@ class Message:
 	message = ""
 	mode = ""
 	submod = ""
+	author = ""
 	
 	def __init__(self, _mode, _author, _message, _submod = ""):
 		self.message = _message
 		self.mode = _mode
 		self.submod = _submod
+		self.author = _author
 	
 	def __init__(self, _raw_message):
 		self.mode, reste= _raw_message.split(" ", 1)
