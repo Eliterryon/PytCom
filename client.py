@@ -18,40 +18,6 @@ name = ""
 
 dicoParse = {}
 
-def parsing(_raw_message):
-	x = _raw_message.split(" ", 1)
-	if x[0] == "\\t":
-		pass
-	elif x[0] == "\\c":
-		y = x[1].split(" ", 1)
-		if y[0] == "+":
-			addition_connected(y[1])
-		elif y[0] == "-":
-			substract_connected(y[1])
-		elif y[0] == "i":
-			initialisation_connected(y[1])
-		elif y[0] == "m":
-			modification_connected(y[1])
-	elif x[0] == "\\s":
-		y = x[1].split(" ", 1)
-		if y[0] == "+":
-			addition_salon(y[1])
-		elif y[0] == "-":
-			substract_salon(y[1])
-		elif y[0] == "0":
-			initialisation_salon(y[1])
-		elif y[0] == "m":
-			modification_salon(y[1])
-	elif x[0] == "\\p":
-		pass
-	elif x[0] == "\\e":
-		print("fermetur du serveur")
-	elif x[0] == "\\m":
-		y = x[1].split(" ", 1)
-		print ("[" + y[0] + "]")
-		print ("	" + y[1])
-		App.addChat(y[0], y[1])
-
 ################################################## connected gestion   ##################################################
 
 def addition_connected(_message):									## add a connected
@@ -117,7 +83,6 @@ class ObservReciv():
 			if temp != None :
 				mess = message.Message(temp)
 				dicoParse[mess.mode][mess.submod](mess)
-				#parsing(temp)
 		except:
 			pass
 
