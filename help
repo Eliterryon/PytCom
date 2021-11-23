@@ -7,14 +7,14 @@ type
 \e 		serveur/client closed
 
 
-\c	-	->	sub a conected ppl		name to sub	 						
-	+	->	add a conected ppl		name to add						
+\c	-	->	sub a conected ppl		name to sub
+	+	->	add a conected ppl		name to add
 	i	->	init conect ppl		 	json liste of name						(inexistant for serveur side)
-	m	->	modif a name			json liste [old name, new name]	
+	m	->	modif a name			json liste [old name, new name]
 
 \s	+	->	name to add
 	-	->	name to sub
 	i	->	init conect ppl		 	json liste of name
 	m	->	modif a name			json liste [old name, new name]*
 
-\p	
+\p
