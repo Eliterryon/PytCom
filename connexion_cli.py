@@ -100,7 +100,7 @@ def close_connect():
 
 
 def addBuffer(_msg):
-    custom_send(_msg)
+    custom_send(str(_msg))
 
 
 def readBuffer():

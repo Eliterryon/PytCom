@@ -41,12 +41,12 @@ class myThreadRevived(
                 pass
             except Exception as err:
                 if (self.id in ListeClient) and ListeClient[self.id][1]:
-                    close_connect(self.id, True)
+                    close_connect("", self.id)
                     print(err)
                     print("connexion lose (" + format(self.id) + ") (Erreur 4)")
                 elif (self.id in ListeClient) and ListeClient[self.id][1] == False:
                     print(format(self.id) + " diconected")
-                    close_connect(self.id, True)
+                    close_connect("", self.id)
                 else:
                     print("connexion " + format(self.id) + " closed")
             else:
@@ -123,7 +123,7 @@ def stop():  ## stop the serveur
 
     Connexion = False
     for id in ListeClient.keys():
-        close_connect(id, False)
+        close_connect("", id)
     ListeClient = {}
     socks.close()
     time.sleep(0.01)
@@ -146,23 +146,18 @@ def connect_serveur(
         print("connected")
 
         ObserverRecive.attach(ObserverReciveFonction)
-
-        return True
-
     except Exception as err:
         print(err)
         print("error, can't opend serveur port (Erreur 1)")
-        return False
+        raise Exception
 
 
 def close_connect(
-    _id_client, booll
+    mess, _id_client
 ):  ## close the connection of a _id_client if booll it is bc we los the connection
     global ListeClient
     ListeClient[_id_client][1] = False
     ListeClient[_id_client][0].close()
-    if booll:
-        del ListeClient[_id_client]
 
 
 def deco_client(_id_client):  ## take in count that the client disconnect
@@ -175,7 +170,7 @@ def deco_client(_id_client):  ## take in count that the client disconnect
 
 def addBuffer(_id, _msg):  ## add a msg to the bufferSend for sending it
     if ListeClient[_id][1]:
-        custom_send(_msg, ListeClient[_id][0])
+        custom_send(str(_msg), ListeClient[_id][0])
 
 
 def readBuffer():  ## return the 1st msg to the BufferRecive, return None if empty

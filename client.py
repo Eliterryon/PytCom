@@ -98,7 +98,7 @@ class ObservReciv:
         try:
             temp = _arg[0]
             if temp != None:
-                mess = message.Message(temp)
+                mess = message.Message(_raw_message=temp)
                 dicoParse[mess.mode][mess.submod](mess)
         except:
             pass
@@ -152,10 +152,16 @@ sendName(input())  ## waiting the name of the client and send it to te serveur
 while Co.Connexion:  ## main loop
     txt = input()
     if txt == "e":
-        Co.addBuffer("\\e")
+        Co.addBuffer("\\e 0")
         time.sleep(3)
         Co.close_connect()
     elif txt == "c":
         show_conected()
     else:
-        Co.addBuffer("\\m " + txt)
+        mm = message.Message(
+            _mode=message.MODE.MESSAGE,
+            _author="serveur",
+            _message=txt,
+            _submod=message.SUB_MODE.NULL,
+        )
+        Co.addBuffer(mm)

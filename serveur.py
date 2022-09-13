@@ -1,3 +1,4 @@
+from paramiko import Agent
 import connexion_serv as Co
 import threading
 import time
@@ -5,42 +6,16 @@ import json
 import message
 
 
-ListeConnected = {}  ## liste of connectesd :[id] = nom
-ListeSalon = []  ## liste of connectesd
+ListeConnected = {}  ## liste of connected :[id] = nom
+ListeSalon = []  ## liste of connected
 
 dicoParse = {}
-
-
-def parsing(_id, _raw_message):
-    x = _raw_message.split(" ", 1)
-    if x[0] == "\\t":
-        pass
-    elif x[0] == "\\c":
-        y = x[1].split(" ", 2)
-        if y[0] == "+":
-            addition_connected(y[1], _id)  ## TODO name without space
-        elif y[0] == "-":
-            substract_connected(y[1], _id)
-        elif y[0] == "m":
-            modification_connected(y[1], _id)
-    elif x[0] == "\\s":
-        pass
-    elif x[0] == "\\p":
-        pass
-    elif x[0] == "\\e":
-        substract_connected(ListeConnected[_id], _id)
-    elif x[0] == "\\m":
-        new_message("\\m " + ListeConnected[_id] + " " + x[1], _id)
-        print("[" + ListeConnected[_id] + "]")
-        print("	" + x[1])
-
 
 ##################################################  connected gestion	##################################################
 
 
 def addition_connected(_message, _id):  ## add a connected
     new_message(_message)
-
     ListeConnected[_id] = _message.message
 
 
@@ -72,6 +47,7 @@ def show_conected():  ## print all conected
         print("aucun connecter")
     for key, item in Co.ListeClient.items():
         print(ListeConnected[key], item[1])
+        ##print(ListeConnected)
 
 
 ##################################################  connected gestion	##################################################
@@ -80,7 +56,7 @@ def show_conected():  ## print all conected
 def new_message(_message, _id=None):  ## send a message to all connected
     for key in ListeConnected.keys():
         if key != _id:
-            Co.addBuffer(key, _message.message)
+            Co.addBuffer(key, _message)
 
 
 ######################### thread witch keep cheking upcomming message in Connexion Reciv Buffer	#########################
@@ -91,10 +67,11 @@ class ObservReciv:
         try:
             temp = _arg[0]
             if temp != None and temp[1] != None:
-                mess = message.Message(temp[0])
-                dicoParse[mess.mode][mess.submod](mess, temp[1])
-        except:
-            pass
+                mess = message.Message(_raw_message=temp[1])
+                dicoParse[mess.mode][mess.submod](mess, temp[0])
+        except Exception as err:
+            print(err)
+            print("error, Parse crash (Erreur 10)")
 
 
 ###########################################   Neasted parsing dictionairy	############################################
@@ -133,21 +110,26 @@ dicoParse[message.MODE.CONNECTION][
 
 ######################################## init and main loop for runnig client	########################################
 
-Co.connect_serveur(ObservReciv)  ## lunch procecuse serveur side serveur
+try:
+    Co.connect_serveur(ObservReciv)  ## lunch procecuse serveur side serveur
 
-while Co.Connexion:  ## main loop
-    txt = input()
-    if txt == "e":
-
-        new_message("\\e")
-        time.sleep(1)
-        Co.stop()
-        time.sleep(1)
-        exit()
-    elif txt == "c":
-        show_conected()
-    else:
-        mm = message.Message(
-            message.MODE.MESSAGE, "serveur", txt, message.SUB_MODE.NULL
-        )
-        new_message(mm)
+    while Co.Connexion:  ## main loop
+        txt = input()
+        if txt == "e":
+            new_message("\\e")
+            time.sleep(1)
+            Co.stop()
+            time.sleep(1)
+            exit()
+        elif txt == "c":
+            show_conected()
+        else:
+            mm = message.Message(
+                _mode=message.MODE.MESSAGE,
+                _author="serveur",
+                _message=txt,
+                _submod=message.SUB_MODE.NULL,
+            )
+            new_message(mm)
+except:
+    pass
