@@ -87,7 +87,13 @@ def new_message(_message):
 
 def sendName(_txt):  ## send the name of the client
     name = _txt
-    Co.addBuffer("\\c + " + _txt)
+    mess = message.Message(
+        _mode=message.MODE.CONNECTION,
+        _author=name,
+        _message=name,
+        _submod=message.SUB_MODE.ADDITION,
+    )
+    Co.addBuffer(mess)
 
 
 #####################################   observeur's method for recovering message	####################################
@@ -144,7 +150,8 @@ dicoParse[message.MODE.CONNECTION][
 
 Co.connect_client(ObservReciv)  ## lunch procecuse client side serveur
 print("Enter your name :")
-sendName(input())  ## waiting the name of the client and send it to te serveur
+name = input()
+sendName(name)  ## waiting the name of the client and send it to te serveur
 # App = TestApp()
 # App.run()
 
@@ -152,7 +159,13 @@ sendName(input())  ## waiting the name of the client and send it to te serveur
 while Co.Connexion:  ## main loop
     txt = input()
     if txt == "e":
-        Co.addBuffer("\\e 0")
+        mm = message.Message(
+            _mode=message.MODE.CLOSING,
+            _author="serveur",
+            _message=txt,
+            _submod=message.SUB_MODE.NULL,
+        )
+        Co.addBuffer(mm)
         time.sleep(3)
         Co.close_connect()
     elif txt == "c":
@@ -160,7 +173,7 @@ while Co.Connexion:  ## main loop
     else:
         mm = message.Message(
             _mode=message.MODE.MESSAGE,
-            _author="serveur",
+            _author=name,
             _message=txt,
             _submod=message.SUB_MODE.NULL,
         )

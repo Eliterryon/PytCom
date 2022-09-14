@@ -116,7 +116,13 @@ try:
     while Co.Connexion:  ## main loop
         txt = input()
         if txt == "e":
-            new_message("\\e")
+            mm = message.Message(
+                _mode=message.MODE.CLOSING,
+                _author="serveur",
+                _message=txt,
+                _submod=message.SUB_MODE.NULL,
+            )
+            new_message(mm)
             time.sleep(1)
             Co.stop()
             time.sleep(1)

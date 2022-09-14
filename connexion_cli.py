@@ -87,13 +87,14 @@ def connect_client(_observerReciveFonction=None, _hote=HOTE, _port=PORT):
         return False
 
 
-def close_connect():
+def close_connect(null):
     global sock
     global Connexion
     Connexion = False
     sock.close()
     time.sleep(0.06)
     print("client closed")
+    exit()
 
 
 #################################################### Buffer gestion	###################################################
